@@ -10,6 +10,7 @@ dotenv.config();
 const server = express();
 ////////////////////////////
 
+//Mustache est un engin de gabarit comme twig
 server.set("views", path.join(__dirname, "views"));
 server.set("view engine", "mustache");
 server.engine("mustache", mustacheExpress());
@@ -41,7 +42,7 @@ server.get("/donnees/:id", (req, res)=>{
     const donnees = require("./data/donneesTest.js");
 
     const utilisateur = donnees.find((element)=>{
-        //Va check si il y en a
+        //Va check si il y en a et retourne le premier trouvé
         return element.id == req.params.id;
     });
 
@@ -61,6 +62,7 @@ server.get("/donnees/:id", (req, res)=>{
 
 server.use((req, res)=>{
     res.statusCode = 404;
+    //Render est utilisé pour les engins de gabarit
     res.render("404", {url: req.url});
 })
 
