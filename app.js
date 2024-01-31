@@ -29,7 +29,12 @@ server.get("/donnees", async (req, res)=>{
     //Ceci sera remplacé par un fetch ou un appel à la base de données
     //const donnees = require("./data/donneesTest.js");
 
-    const donneesRef = await db.collection("test").get();
+    //Va afficher ce qui apparait après le ? dans le url
+    console.log(req.query)
+    const direction = req.query["order-direction"];
+    const limit = +req.query.limit;     //+ converti en nombre
+
+    const donneesRef = await db.collection("test").orderBy("user", direction).limit(limit).get();
 
     const donneesFinale = [];
 
