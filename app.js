@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const mustacheExpress = require("mustache-express");
 const db = require("./config/db.js");
+const { ServerResponse } = require("http");
 
 //Configuration
 dotenv.config();
@@ -23,28 +24,37 @@ server.engine("mustache", mustacheExpress());
 //Done tout les fichiers du dossier public. Dans le font, ça fait une shit ton de demandes get au serveur pour chaque fichier.
 server.use(express.static(path.join(__dirname, "public")));
 
+//Permet d'accepter des body en Json dans les requêtes
+server.use(express.json());
 
 //Points d'accès    (Arrête la requête)
 server.get("/donnees", async (req, res)=>{
-    //Ceci sera remplacé par un fetch ou un appel à la base de données
-    //const donnees = require("./data/donneesTest.js");
+    try{
+        //Ceci sera remplacé par un fetch ou un appel à la base de données
+        //const donnees = require("./data/donneesTest.js");
 
-    //Va afficher ce qui apparait après le ? dans le url
-    console.log(req.query)
-    const direction = req.query["order-direction"];
-    const limit = +req.query.limit;     //+ converti en nombre
+        //Va afficher ce qui apparait après le ? dans le url
+        console.log(req.query)
+        //Si req.query est undefined, prend l'alternatif
+        const direction = req.query["order-direction"] || "asc";
+        const limit = +req.query["limit"] || 50;     //+ converti en nombre
 
-    const donneesRef = await db.collection("test").orderBy("user", direction).limit(limit).get();
+        const donneesRef = await db.collection("test").orderBy("user", direction).limit(limit).get();
 
-    const donneesFinale = [];
+        const donneesFinale = [];
 
-    donneesRef.forEach((doc)=>{
-        donneesFinale.push(doc.data());
-    })
+        donneesRef.forEach((doc)=>{
+            donneesFinale.push(doc.data());
+        })
 
-    res.statusCode = 200;
-    res.json(donneesFinale);
+        res.statusCode = 200;
+        res.json(donneesFinale);
+    } catch (erreur){
+        res.statusCode = 500;
+        res.json({message: "Une erreur est survenue."})
+    }
 });
+
 
 
 /**
@@ -71,6 +81,89 @@ server.get("/donnees/:id", (req, res)=>{
     res.send(req.params.id);
 });
 
+
+// //Film (tp1)
+// server.get("/api/films", async (req, res)=>{
+
+//     const donneesRef = await db.collection("film").orderBy("titre").get();
+
+//     const donneesFinale = [];
+
+//     donneesRef.forEach((doc)=>{
+//         donneesFinale.push(doc.data());
+//     })
+
+//     res.statusCode = 200;
+//     res.json(donneesFinale);
+// });
+
+// //Aura sûrement besoin d'un where
+// server.get("/api/films/:id", async (req, res)=>{
+
+//     const donneesRef = await db.collection("film").orderBy("titre").get();
+
+//     if (utilisateur) {
+//         res.statusCode = 200;
+//         res.json(utilisateur);
+//     } else {
+//         res.statusCode = 404;
+//         res.json({message: "Utilisateur non trouvé"});
+//     }
+//     res.send(req.params.id);
+// });
+
+server.post("/donnees", async (req, res)=>{
+    try{
+        const test = req.body;
+
+        //Validation des données
+        if(test.user==undefined){
+            res.statusCode = 400;
+            return res.json({message: "Vous devez fournir un utilisateur"});
+        }
+    
+        await db.collection("test").add(test);
+    
+        res.statusCode = 201;
+        res.json({message: "La donnée a été ajoutée", donnees: test});
+    } catch {
+        res.statusCode = 500;
+        res.json({message: "error"})
+    }
+});
+
+//Ajoute tout dans le fichier donneesTest dans la db
+server.post("/donnees/initialiser", async (req, res)=>{
+    const donneesTest = require("./data/donneesTest.js");
+    donneesTest.forEach(async (element)=>{
+        await db.collection("test").add(element);
+    })
+
+    res.statusCode = 200;
+    res.json({
+        message: "Données initialisées"
+    })
+    
+})
+
+server.put("/donnees/:id", async (req, res)=>{
+    const id = req.params.id;
+    const donneesModifiees = req.body;
+    //Validation ici
+
+    await db.collection("test").doc(id).update(donneesModifiees);
+    
+    res.status = 200;
+    res.json({message: "La donnees a été modifiée"})
+})
+
+server.delete("/donnees/:id", async (req, res)=>{
+    //params est tout les : dans ton url. Par exemple, :id, :user etc
+    const id = req.params.id;
+    const resultat = await db.collection("test").doc(id).delete();
+
+    res.json("Le document a été supprimé");
+});
 
 //DOIT être en dernier
 //Gestion page 404 - requête non trouvée
