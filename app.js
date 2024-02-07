@@ -18,8 +18,11 @@ server.use(express.json());
 
 server.get("/api/films", async (req, res)=>{
     try{
-        const donneesRef = await db.collection("film").orderBy("titre").limit(limit).get();
+        //Prend les valeurs données pour l'ordre et la limite dans le URL et les mets dans une constante
+        const direction = req.query["order-direction"] || "asc";
+        const limit = +req.query["limit"] || 50;
 
+        const donneesRef = await db.collection("film").orderBy(direction).limit(limit).get();
         const donneesFinale = [];
 
         donneesRef.forEach((doc)=>{
@@ -56,6 +59,8 @@ server.post("/api/films", async (req, res)=>{
     try{
         const donnees = req.body;
 
+        //TODO:
+        //Revient le faire avec express validator si tu a le temps
         //Validation des données
         if(donnees.titre == undefined ||
             donnees.genres == undefined ||
@@ -79,41 +84,43 @@ server.post("/api/films", async (req, res)=>{
 });
 
 
-// //Modification
-// server.put("/api/films/:id", async (req, res)=>{
-//     const id = req.params.id;
-//     const donneesModifiees = req.body;
+//Modification
+server.put("/api/films/:id", async (req, res)=>{
+    const id = req.params.id;
+    const donneesModifiees = req.body;
 
-//     //Validation des données
-//     if(donnees.titre == undefined ||
-//         donnees.genres == undefined ||
-//         donnees.description == undefined ||
-//         donnees.annee == undefined ||
-//         donnees.realisation == undefined ||
-//         donnees.titreVignette == undefined){
+    //TODO:
+    //Revient le faire avec express validator si tu a le temps
+    //Validation des données
+    if(donnees.titre == undefined ||
+        donnees.genres == undefined ||
+        donnees.description == undefined ||
+        donnees.annee == undefined ||
+        donnees.realisation == undefined ||
+        donnees.titreVignette == undefined){
 
-//         res.statusCode = 400;
-//         return res.json({message: "Vous devez fournir les informations nécéssaires"});
-//     }
+        res.statusCode = 400;
+        return res.json({message: "Vous devez fournir les informations nécéssaires"});
+    }
 
-//     await db.collection("film").doc(id).update(donneesModifiees);
+    await db.collection("film").doc(id).update(donneesModifiees);
     
-//     res.status = 200;
-//     res.json({message: "Les données ont été modifiées"})
-// });
+    res.status = 200;
+    res.json({message: "Les données ont été modifiées"})
+});
 
 
-// //Supprimer
-// server.delete("/api/films/:id", async (req, res)=>{
-//     //params est tout les : dans ton url. Par exemple, :id, :user etc
-//     const id = req.params.id;
-//     const resultat = await db.collection("film").doc(id).delete();
+//Supprimer
+server.delete("/api/films/:id", async (req, res)=>{
+    //params est tout les : dans ton url. Par exemple, :id, :user etc
+    const id = req.params.id;
+    const resultat = await db.collection("film").doc(id).delete();
 
-//     res.json("Le document a été supprimé");
-// });
+    res.json("Le document a été supprimé");
+});
 
 //Récupe info du body
-server.post("/utilisateurs/inscription", [
+server.post("/api/utilisateurs/inscription", [
     check("courriel").escape().trim().notEmpty().isEmail().normalizeEmail(),
     check("mdp").escape().trim().notEmpty().isLength({min:8, max:20}).isStrongPassword({
         minLength:8,
@@ -130,10 +137,8 @@ server.post("/utilisateurs/inscription", [
         res.statusCode = 400;
         return res.json({message: "Données non comforme"})
     }
-    //Récupe info du body
 
-    // const courriel = req.body.courriel;
-    // const mdp = req.body.mpd
+    //Récupe info du body
     const {courriel, mdp} = req.body;
 
     //Vérifie si courriel existe
@@ -144,7 +149,7 @@ server.post("/utilisateurs/inscription", [
         utilisateurs.push(doc.data());
     })
 
-    //Si oui erreur
+    //Si oui, erreur
     if (utilisateurs.length > 0) {
         res.statusCode = 400;
         return res.json({message: "Le courriel est déjà utilisé"});
@@ -167,7 +172,7 @@ server.post("/utilisateurs/inscription", [
 
 });
 
-server.post("/utilisateurs/connexion", async (req, res) => {
+server.post("/api/utilisateurs/connexion", async (req, res) => {
 
     //Récupe info du body
     const {courriel, mdp} = req.body;
