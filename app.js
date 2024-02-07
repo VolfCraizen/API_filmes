@@ -57,26 +57,32 @@ server.get("/api/films/:id", async (req, res)=>{
 
 server.post("/api/films", async (req, res)=>{
     try{
-        const donnees = req.body;
+        const nouveauFilm = req.body;
 
         //TODO:
         //Revient le faire avec express validator si tu a le temps
+        //Créer une nouvelle constante et ajoute tout les champs nécéssaires comme ça, si quelequ'un à ajouté quelque chose, il ne sera pas pris en compte
         //Validation des données
-        if(donnees.titre == undefined ||
-            donnees.genres == undefined ||
-            donnees.description == undefined ||
-            donnees.annee == undefined ||
-            donnees.realisation == undefined ||
-            donnees.titreVignette == undefined){
+        // if(donnees.titre == undefined ||
+        //     donnees.genres == undefined ||
+        //     donnees.description == undefined ||
+        //     donnees.annee == undefined ||
+        //     donnees.realisation == undefined ||
+        //     donnees.titreVignette == undefined){
 
-            res.statusCode = 400;
-            return res.json({message: "Vous devez fournir les informations nécéssaires"});
-        }
+        //     res.statusCode = 400;
+        //     return res.json({message: "Vous devez fournir les informations nécéssaires"});
+        // }
+
+        const ajoutFilm = [];
+        ajoutFilm.push(nouveauFilm["titre"])
+
+        return res.json(ajoutFilm);
     
-        await db.collection("film").add(donnees);
+        await db.collection("film").add(nouveauFilm);
     
         res.statusCode = 201;
-        res.json({message: "La donnée a été ajoutée", donnees: donnees});
+        res.json({message: "La donnée a été ajoutée"});
     } catch {
         res.statusCode = 500;
         res.json({message: "error"})
@@ -91,6 +97,7 @@ server.put("/api/films/:id", async (req, res)=>{
 
     //TODO:
     //Revient le faire avec express validator si tu a le temps
+    //Créer une nouvelle constante et ajoute tout les champs nécéssaires comme ça, si quelequ'un à ajouté quelque chose, il ne sera pas pris en compte
     //Validation des données
     if(donnees.titre == undefined ||
         donnees.genres == undefined ||
