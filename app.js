@@ -4,7 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const mustacheExpress = require("mustache-express");
 const db = require("./config/db.js");
-const { ServerResponse } = require("http");
+const server = express();
+const {check, validationResult} = require("express-validator");
 
 //Configuration
 dotenv.config();
@@ -78,41 +79,129 @@ server.post("/api/films", async (req, res)=>{
 });
 
 
-//Modification
-server.put("/api/films/:id", async (req, res)=>{
-    const id = req.params.id;
-    const donneesModifiees = req.body;
+// //Modification
+// server.put("/api/films/:id", async (req, res)=>{
+//     const id = req.params.id;
+//     const donneesModifiees = req.body;
 
-    //Validation des données
-    if(donnees.titre == undefined ||
-        donnees.genres == undefined ||
-        donnees.description == undefined ||
-        donnees.annee == undefined ||
-        donnees.realisation == undefined ||
-        donnees.titreVignette == undefined){
+//     //Validation des données
+//     if(donnees.titre == undefined ||
+//         donnees.genres == undefined ||
+//         donnees.description == undefined ||
+//         donnees.annee == undefined ||
+//         donnees.realisation == undefined ||
+//         donnees.titreVignette == undefined){
 
+//         res.statusCode = 400;
+//         return res.json({message: "Vous devez fournir les informations nécéssaires"});
+//     }
+
+//     await db.collection("film").doc(id).update(donneesModifiees);
+    
+//     res.status = 200;
+//     res.json({message: "Les données ont été modifiées"})
+// });
+
+
+// //Supprimer
+// server.delete("/api/films/:id", async (req, res)=>{
+//     //params est tout les : dans ton url. Par exemple, :id, :user etc
+//     const id = req.params.id;
+//     const resultat = await db.collection("film").doc(id).delete();
+
+//     res.json("Le document a été supprimé");
+// });
+
+//Récupe info du body
+server.post("/utilisateurs/inscription", [
+    check("courriel").escape().trim().notEmpty().isEmail().normalizeEmail(),
+    check("mdp").escape().trim().notEmpty().isLength({min:8, max:20}).isStrongPassword({
+        minLength:8,
+        minLowercase:1,
+        minNumbers:1,
+        minUppercase:1,
+        minSymbols:1
+    })
+], async (req, res) => {
+
+    const validation = validationResult(req);
+
+    if (validation.errors.length > 0) {
         res.statusCode = 400;
-        return res.json({message: "Vous devez fournir les informations nécéssaires"});
+        return res.json({message: "Données non comforme"})
+    }
+    //Récupe info du body
+
+    // const courriel = req.body.courriel;
+    // const mdp = req.body.mpd
+    const {courriel, mdp} = req.body;
+
+    //Vérifie si courriel existe
+    const docRef = await db.collection("utilisateurs").where("courriel", "==", courriel).get();
+    const utilisateurs = [];
+
+    docRef.forEach((doc)=>{
+        utilisateurs.push(doc.data());
+    })
+
+    //Si oui erreur
+    if (utilisateurs.length > 0) {
+        res.statusCode = 400;
+        return res.json({message: "Le courriel est déjà utilisé"});
     }
 
-    await db.collection("film").doc(id).update(donneesModifiees);
+    //Valide la donnée/nettoie la donnée
+
+    //TODO:
+    //Encrypte le mot de passe
+
+    //Enregistre/nettoie la donnée
+    const nouvelUtilisateur = {courriel, mdp};
+    await db.collection("utilisateurs").add(nouvelUtilisateur);
+    delete nouvelUtilisateur.mdp;
     
-    res.status = 200;
-    res.json({message: "Les données ont été modifiées"})
+    //Renvoie true
+    res.statusCode = 200;
+    res.json(nouvelUtilisateur);
+
+
+});
+
+server.post("/utilisateurs/connexion", async (req, res) => {
+
+    //Récupe info du body
+    const {courriel, mdp} = req.body;
+
+    //Vérifie si courriel existe
+    const docRef = await db.collection("utilisateurs").where("courriel", "==", courriel).get();
+    const utilisateurs = [];
+    docRef.forEach((utilisateur)=>{
+        utilisateurs.push(utilisateur.data());
+    })
+
+    //Si non erreur
+    if (utilisateurs.length == 0) {
+        res.statusCode = 400;
+        return res.json({message: "Le courriel n'existe pas"});
+    }
+
+    //TODO:
+    //Encrypte le mot de passe
+
+    //compare
+    if (utilisateurs[0].mdp !== mdp){
+        res.statusCode = 400;
+        return res.json({message: "Mot de passe incorrecte"});
+    }
+
+    //Retourne les infos de l'utilisateur sans le mot de passe
+    delete utilisateurs[0].mdp;
+    res.statusCode = 200;
+    res.json(utilisateurs);
 });
 
 
-//Supprimer
-server.delete("/api/films/:id", async (req, res)=>{
-    //params est tout les : dans ton url. Par exemple, :id, :user etc
-    const id = req.params.id;
-    const resultat = await db.collection("film").doc(id).delete();
-
-    res.json("Le document a été supprimé");
-});
-
-
-
+//DOIT ÊTRE LA DERNIÈRE
 server.use((req, res)=>{
     res.statusCode = 404;
     //Render est utilisé pour les engins de gabarit
