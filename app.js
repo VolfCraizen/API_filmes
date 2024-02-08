@@ -55,24 +55,25 @@ server.get("/api/films/:id", async (req, res)=>{
     res.send(req.params.id);
 });
 
-server.post("/api/films", async (req, res)=>{
+server.post("/api/films",  [
+    check("titre").escape().trim().notEmpty(),
+    check("genres").escape().trim().notEmpty().isAlphanumeric(),
+    check("description").escape().trim().notEmpty(),
+    check("annee").escape().trim().notEmpty().isInt().isLength(4),
+    check("realisation").escape().trim().notEmpty(),
+    check("titreVignette").escape().trim().notEmpty(),
+
+], async (req, res)=>{
+
+    const validation = validationResult(req);
+
+    if (validation.errors.length > 0) {
+        res.statusCode = 400;
+        return res.json({message: "Données non comforme"})
+    }
+
     try{
         const nouveauFilm = req.body;
-
-        //TODO:
-        //Revient le faire avec express validator si tu a le temps
-        //Créer une nouvelle constante et ajoute tout les champs nécéssaires comme ça, si quelequ'un à ajouté quelque chose, il ne sera pas pris en compte
-        //Validation des données
-        // if(donnees.titre == undefined ||
-        //     donnees.genres == undefined ||
-        //     donnees.description == undefined ||
-        //     donnees.annee == undefined ||
-        //     donnees.realisation == undefined ||
-        //     donnees.titreVignette == undefined){
-
-        //     res.statusCode = 400;
-        //     return res.json({message: "Vous devez fournir les informations nécéssaires"});
-        // }
 
         const ajoutFilm = [];
         ajoutFilm.push(nouveauFilm["titre"])
@@ -91,24 +92,26 @@ server.post("/api/films", async (req, res)=>{
 
 
 //Modification
-server.put("/api/films/:id", async (req, res)=>{
+server.put("/api/films/:id", [
+    check("titre").escape().trim().notEmpty(),
+    check("genres").escape().trim().notEmpty().isAlphanumeric(),
+    check("description").escape().trim().notEmpty(),
+    check("annee").escape().trim().notEmpty().isInt().isLength(4),
+    check("realisation").escape().trim().notEmpty(),
+    check("titreVignette").escape().trim().notEmpty(),
+
+], async (req, res)=>{
+
+    const validation = validationResult(req);
+
+    if (validation.errors.length > 0) {
+        res.statusCode = 400;
+        return res.json({message: "Données non comforme"})
+    }
+
+
     const id = req.params.id;
     const donneesModifiees = req.body;
-
-    //TODO:
-    //Revient le faire avec express validator si tu a le temps
-    //Créer une nouvelle constante et ajoute tout les champs nécéssaires comme ça, si quelequ'un à ajouté quelque chose, il ne sera pas pris en compte
-    //Validation des données
-    if(donnees.titre == undefined ||
-        donnees.genres == undefined ||
-        donnees.description == undefined ||
-        donnees.annee == undefined ||
-        donnees.realisation == undefined ||
-        donnees.titreVignette == undefined){
-
-        res.statusCode = 400;
-        return res.json({message: "Vous devez fournir les informations nécéssaires"});
-    }
 
     await db.collection("film").doc(id).update(donneesModifiees);
     
