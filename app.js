@@ -3,21 +3,28 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
 const mustacheExpress = require("mustache-express");
+const bcrypt = require("bcrypt");
 const db = require("./config/db.js");
 const server = express();
 const {check, validationResult} = require("express-validator");
+const { log } = require("console");
 
 //Configuration
 dotenv.config();
 
 ////Middlewares////
-server.use(express.static(path.join(__dirname, "public")));
+// server.use(express.static(path.join(__dirname, "public")));
 server.use(express.json());
+
+server.set("views", path.join(__dirname, "views"));
+server.set("view engine", "mustache");
+server.engine("mustache", mustacheExpress());
 
 
 
 server.get("/api/films", async (req, res)=>{
     try{
+
         //Prend les valeurs données pour l'ordre et la limite dans le URL et les mets dans une constante
         const direction = req.query["order-direction"] || "asc";
         const limit = +req.query["limit"] || 50;
@@ -57,7 +64,7 @@ server.get("/api/films/:id", async (req, res)=>{
 
 server.post("/api/films",  [
     check("titre").escape().trim().notEmpty(),
-    check("genres").escape().trim().notEmpty().isAlphanumeric(),
+    check("genres").escape().trim().notEmpty(),
     check("description").escape().trim().notEmpty(),
     check("annee").escape().trim().notEmpty().isInt().isLength(4),
     check("realisation").escape().trim().notEmpty(),
@@ -73,14 +80,15 @@ server.post("/api/films",  [
     }
 
     try{
-        const nouveauFilm = req.body;
-
-        const ajoutFilm = [];
-        ajoutFilm.push(nouveauFilm["titre"])
-
-        return res.json(ajoutFilm);
+        const film = {};
+        film.titre = req.body.titre;
+        film.genres = req.body.genres;
+        film.description = req.body.description;
+        film.annee = req.body.annee;
+        film.realisation = req.body.realisation;
+        film.titreVignette = req.body.titreVignette;
     
-        await db.collection("film").add(nouveauFilm);
+        await db.collection("film").add(film);
     
         res.statusCode = 201;
         res.json({message: "La donnée a été ajoutée"});
@@ -94,7 +102,7 @@ server.post("/api/films",  [
 //Modification
 server.put("/api/films/:id", [
     check("titre").escape().trim().notEmpty(),
-    check("genres").escape().trim().notEmpty().isAlphanumeric(),
+    check("genres").escape().trim().notEmpty(),
     check("description").escape().trim().notEmpty(),
     check("annee").escape().trim().notEmpty().isInt().isLength(4),
     check("realisation").escape().trim().notEmpty(),
@@ -111,7 +119,13 @@ server.put("/api/films/:id", [
 
 
     const id = req.params.id;
-    const donneesModifiees = req.body;
+    const donneesModifiees = {};
+    donneesModifiees.titre = req.body.titre;
+    donneesModifiees.genres = req.body.genres;
+    donneesModifiees.description = req.body.description;
+    donneesModifiees.annee = req.body.annee;
+    donneesModifiees.realisation = req.body.realisation;
+    donneesModifiees.titreVignette = req.body.titreVignette;
 
     await db.collection("film").doc(id).update(donneesModifiees);
     
@@ -140,7 +154,6 @@ server.post("/api/utilisateurs/inscription", [
         minSymbols:1
     })
 ], async (req, res) => {
-
     const validation = validationResult(req);
 
     if (validation.errors.length > 0) {
@@ -165,13 +178,11 @@ server.post("/api/utilisateurs/inscription", [
         return res.json({message: "Le courriel est déjà utilisé"});
     }
 
-    //Valide la donnée/nettoie la donnée
-
-    //TODO:
     //Encrypte le mot de passe
+    const hash = await bcrypt.hash(mdp, 10);
 
     //Enregistre/nettoie la donnée
-    const nouvelUtilisateur = {courriel, mdp};
+    const nouvelUtilisateur = {courriel, mdp: hash};
     await db.collection("utilisateurs").add(nouvelUtilisateur);
     delete nouvelUtilisateur.mdp;
     
@@ -200,11 +211,11 @@ server.post("/api/utilisateurs/connexion", async (req, res) => {
         return res.json({message: "Le courriel n'existe pas"});
     }
 
-    //TODO:
-    //Encrypte le mot de passe
+    const utilisateurAValider = utilisateurs[0];
+    const estValide = await bcrypt.compare(mdp, utilisateurAValider.mdp)
 
     //compare
-    if (utilisateurs[0].mdp !== mdp){
+    if (estValide === false){
         res.statusCode = 400;
         return res.json({message: "Mot de passe incorrecte"});
     }
