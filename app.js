@@ -13,7 +13,7 @@ const { log } = require("console");
 dotenv.config();
 
 ////Middlewares////
-// server.use(express.static(path.join(__dirname, "public")));
+server.use(express.static(path.join(__dirname, "public")));
 server.use(express.json());
 
 server.set("views", path.join(__dirname, "views"));
@@ -25,19 +25,28 @@ server.engine("mustache", mustacheExpress());
 server.get("/api/films", async (req, res)=>{
     try{
 
-        //Prend les valeurs données pour l'ordre et la limite dans le URL et les mets dans une constante
+        //Prend les valeurs données pour l'ordre, la limite et le sujet dans le URL et les mets dans une constante
         const direction = req.query["order-direction"] || "asc";
         const limit = +req.query["limit"] || 50;
+        const subject = req.query["subject"] || "titre";
 
-        const donneesRef = await db.collection("film").orderBy(direction).limit(limit).get();
-        const donneesFinale = [];
+        //S'assure que le sujet est sois par titre, par annee par réalisation
+        if (subject === "titre" || subject === "annee" || subject === "realisation") {
+            const donneesRef = await db.collection("film").orderBy(subject, direction).limit(limit).get();
+            const donneesFinale = [];
 
-        donneesRef.forEach((doc)=>{
-            donneesFinale.push(doc.data());
-        })
+            donneesRef.forEach((doc)=>{
+                donneesFinale.push(doc.data());
+            })
 
-        res.statusCode = 200;
-        res.json(donneesFinale);
+            res.statusCode = 200;
+            res.json(donneesFinale);
+        } else {
+            res.statusCode = 400;
+            return res.json({message: "Impossible de trier par ce sujet"})
+        }
+
+    
     } catch (erreur){
         res.statusCode = 500;
         res.json({message: "Une erreur est survenue."})
