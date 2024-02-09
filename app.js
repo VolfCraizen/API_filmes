@@ -60,15 +60,15 @@ server.get("/api/films/:id", async (req, res)=>{
     const id = req.params.id;
 
     const donneesRef = await db.collection("film").doc(id).get();
+    const donnee = donneesRef.data();
     
-    if (donneesRef) {
+    if (donnee) {
         res.statusCode = 200;
-        res.json(donneesRef);
+        return res.json(donnee);
     } else {
         res.statusCode = 404;
-        res.json({message: "Film non trouvé"});
+        return res.json({message: "Film non trouvé"});
     }
-    res.send(req.params.id);
 });
 
 server.post("/api/films",  [
