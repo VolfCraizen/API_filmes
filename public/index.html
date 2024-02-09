@@ -4,8 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-    <h1>Ma page web</h1>
+    <h1>Documentation de API Films</h1>
+    <p>Cet API permet d'afficher selon les désires de l'utilisateur, ajouter, modifier et supprimer des filmes. Elle permet aussi la création d'utilisateur et la connexion d'utilisateur.</p>
+    <p>Les routes sont accessible à partir de cette url : <strong>https://projet-films.onrender.com/</strong></p>
+
+    <br>
+    <br>
+
+    <h1>Routes</h1>
+
+    <br>
+
+    <h2>Récupérer la liste de films</h2>
+    <p>GET api/films/</p>
+    <p>https://projet-films.onrender.com/api/films</p>
+
+    <br>
+
+    <h3>Paramètres</h3>
+    <p>https://projet-films.onrender.com/api/films?subject=titre&order-direction=desc&limit=2</p>
+
+    <h3>Subject</h3>
+    <ul>
+        <li>titre</li>
+        <li>annee</li>
+        <li>realisation</li>
+    </ul>
+
+    <h3>order-direction</h3>
+    <ul>
+        <li>asc</li>
+        <li>desc</li>
+    </ul>
+
+    <h3>limit</h3>
+    <ul>
+        <li>Nombre entier</li>
+    </ul>
+
+    <br>
+    <br>
+
+    <h2>Récupérer un film spécifique</h2>
+    <p>GET api/films/:id</p>
+    <p>https://projet-films.onrender.com/api/films/:id</p>
+    <p>Nécéssite le paramètre :id (l'identifiant du film)</p>
+
+    <br>
+    <br>
+
+    <h2>Ajout d'un film</h2>
+    <p>POST api/films</p>
+    <p>https://projet-films.onrender.com/api/films</p>
+
+    <h3>Paramètres</h3>
+    <p>{</p>
+    <p>titre: "Titre",</p>
+    <p>genres: ["genre1", "genre2],</p>
+    <p>description: "Description",</p>
+    <p>annee: "Annee",</p>
+    <p>realisation: "Nom du réalisateur",</p>
+    <p>titreVignette: "Titre de la vignette"</p>
+    <p>}</p>
+
+    <h3>Consignes des paramètres</h3>
+    <ul>
+        <li>Chaque paramètre doit être remplit</li>
+        <li>annee doit être un INT et doit être 4 caractères</li>
+    </ul>
+
+    <br>
+    <br>
+
+    <h2>Modification d'un film</h2>
+    <p>PUT api/films/:id</p>
+    <p>https://projet-films.onrender.com/api/films/:id</p>
+    <p>Nécéssite le paramètre :id (l'identifiant du film)</p>
+
+    <h3>Paramètres</h3>
+    <p>{</p>
+    <p>titre: "Titre",</p>
+    <p>genres: ["genre1", "genre2],</p>
+    <p>description: "Description",</p>
+    <p>annee: "Annee",</p>
+    <p>realisation: "Nom du réalisateur",</p>
+    <p>titreVignette: "Titre de la vignette"</p>
+    <p>}</p>
+
+    <h3>Consignes des paramètres</h3>
+    <ul>
+        <li>Chaque paramètre doit être remplit</li>
+        <li>annee doit être un INT et doit être 4 caractères</li>
+    </ul>
+
+    <br>
+    <br>
+
+    <h2>Suppression d'un film</h2>
+    <p>DEL api/films/:id</p>
+    <p>https://projet-films.onrender.com/api/films/:id</p>
+    <p>Nécéssite le paramètre :id (l'identifiant du film)</p>
+
+    <br>
+    <br>
+
+    <h2>Ajout d'un utilisateur</h2>
+    <p>POST api/utilisateurs/inscription</p>
+    <p>https://projet-films.onrender.com/api/utilisateurs/inscription</p>
+
+    <h3>Paramètres</h3>
+    <p>{</p>
+    <p>courriel: "Adresse courriel",</p>
+    <p>mdp: "Mot de passe"</p>
+    <p>}</p>
+
+    <h3>Consignes des paramètres</h3>
+    <ul>
+        <li>Chaque paramètre doit être remplit</li>
+        <li>courriel doit être un courriel Ex: exemple@gmail.com</li>
+        <li>mpd doit contenir minimum 8 caractères</li>
+        <li>mpd doit contenir maximum 20 caractères</li>
+        <li>mpd doit contenir minimum 1 majuscule</li>
+        <li>mpd doit contenir minimum 1 minuscule</li>
+        <li>mpd doit contenir minimum 1 chiffre</li>
+        <li>mpd doit contenir minimum 1 symbol</li>
+    </ul>
+
+    <br>
+    <br>
+
+    <h2>Connexion d'un utilisateur</h2>
+    <p>POST api/utilisateurs/connexion</p>
+    <p>https://projet-films.onrender.com/api/utilisateurs/connexion</p>
+
+    <h3>Paramètres</h3>
+    <p>{</p>
+    <p>courriel: "Adresse courriel",</p>
+    <p>mdp: "Mot de passe"</p>
+    <p>}</p>
+
+
 </body>
 </html>
