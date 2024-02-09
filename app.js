@@ -21,11 +21,11 @@ server.set("view engine", "mustache");
 server.engine("mustache", mustacheExpress());
 
 
-
+//Récupère la liste de film
 server.get("/api/films", async (req, res)=>{
     try{
 
-        //Prend les valeurs données pour l'ordre, la limite et le sujet dans le URL et les mets dans une constante
+        //Prend les valeurs données pour l'ordre, la limite et le sujet dans le URL et les mets dans une constante si il n'y a rien, utilise des valeurs par défaut
         const direction = req.query["order-direction"] || "asc";
         const limit = +req.query["limit"] || 50;
         const subject = req.query["subject"] || "titre";
@@ -125,7 +125,6 @@ server.put("/api/films/:id", [
         res.statusCode = 400;
         return res.json({message: "Données non comforme"})
     }
-
 
     const id = req.params.id;
     const donneesModifiees = {};
