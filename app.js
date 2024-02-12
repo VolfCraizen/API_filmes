@@ -138,6 +138,7 @@ server.put("/api/films/:id", [
     const donneesRef = await db.collection("film").doc(id).get();
     const donnee = donneesRef.data();
 
+    //Vérifie si le film existe
     if (donnee) {
         await db.collection("film").doc(id).update(donneesModifiees);
         res.statusCode = 200;
@@ -152,11 +153,20 @@ server.put("/api/films/:id", [
 
 //Supprimer
 server.delete("/api/films/:id", async (req, res)=>{
-    //params est tout les : dans ton url. Par exemple, :id, :user etc
     const id = req.params.id;
-    const resultat = await db.collection("film").doc(id).delete();
+    const donneesRef = await db.collection("film").doc(id).get();
+    const donnee = donneesRef.data();
 
-    res.json("Le document a été supprimé");
+    //Vérifie si le film existe
+    if (donnee) {
+        //params est tout les : dans ton url. Par exemple, :id, :user etc
+        const resultat = await db.collection("film").doc(id).delete();
+        res.statusCode = 200;
+        res.json("Le document a été supprimé");
+    } else {
+        res.statusCode = 404;
+        return res.json({message: "Film non trouvé"});
+    }
 });
 
 //Récupe info du body
