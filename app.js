@@ -135,10 +135,18 @@ server.put("/api/films/:id", [
     donneesModifiees.realisation = req.body.realisation;
     donneesModifiees.titreVignette = req.body.titreVignette;
 
-    await db.collection("film").doc(id).update(donneesModifiees);
+    const donneesRef = await db.collection("film").doc(id).get();
+    const donnee = donneesRef.data();
+
+    if (donnee) {
+        await db.collection("film").doc(id).update(donneesModifiees);
+        res.statusCode = 200;
+        res.json({message: "Les données ont été modifiées"})
+    } else {
+        res.statusCode = 404;
+        return res.json({message: "Film non trouvé"});
+    }
     
-    res.status = 200;
-    res.json({message: "Les données ont été modifiées"})
 });
 
 
