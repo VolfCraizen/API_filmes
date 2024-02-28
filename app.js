@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
 const mustacheExpress = require("mustache-express");
+const cors = require("cors");
 const bcrypt = require("bcrypt");
 const db = require("./config/db.js");
 const server = express();
@@ -13,6 +14,7 @@ const { log } = require("console");
 dotenv.config();
 
 ////Middlewares////
+server.use(cors())
 server.use(express.static(path.join(__dirname, "public")));
 server.use(express.json());
 
@@ -34,6 +36,12 @@ server.get("/api/films", async (req, res)=>{
         if (subject === "titre" || subject === "annee" || subject === "realisation") {
             const donneesRef = await db.collection("film").orderBy(subject, direction).limit(limit).get();
             const donneesFinale = [];
+
+            filmsRef.forEach((doc) => {
+                const filmAjouter = doc.data();
+                filmAjouter.id = doc.id
+                films.push(filmAjouter);
+            })
 
             donneesRef.forEach((doc)=>{
                 donneesFinale.push(doc.data());
