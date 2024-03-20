@@ -60,7 +60,7 @@ server.get("/api/films", async (req, res)=>{
     
     } catch (erreur){
         res.statusCode = 500;
-        res.json({message: "Une erreur est survenue."})
+        res.json({message: "Une erreur est survenue Get."})
     }
 });
 
