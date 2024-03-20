@@ -40,12 +40,6 @@ server.get("/api/films", async (req, res)=>{
             const donneesRef = await db.collection("film").orderBy(subject, direction).limit(limit).get();
             const donneesFinale = [];
 
-            filmsRef.forEach((doc) => {
-                const filmAjouter = doc.data();
-                filmAjouter.id = doc.id
-                films.push(filmAjouter);
-            })
-
             donneesRef.forEach((doc)=>{
                 donneesFinale.push(doc.data());
             })
@@ -59,8 +53,9 @@ server.get("/api/films", async (req, res)=>{
 
     
     } catch (erreur){
+        console.log(erreur)
         res.statusCode = 500;
-        res.json({message: "Une erreur est survenue Get."})
+        res.json({message: "Une erreur est survenue."})
     }
 });
 
