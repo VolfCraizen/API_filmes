@@ -1,12 +1,14 @@
 const express = require("express");
-const dotenv = require("dotenv");
-const fs = require("fs");
-const path = require("path");
 const mustacheExpress = require("mustache-express");
 const cors = require("cors");
+const auth = require("./middlewares/auth.js");
+const dotenv = require("dotenv");
+const path = require("path");
 const bcrypt = require("bcrypt");
 const db = require("./config/db.js");
 const server = express();
+const jwt = require('jsonwebtoken')
+const fs = require("fs");
 const {check, validationResult} = require("express-validator");
 const { log } = require("console");
 
@@ -14,7 +16,7 @@ const { log } = require("console");
 dotenv.config();
 
 ////Middlewares////
-server.use(cors())
+server.use(cors());
 server.use(express.static(path.join(__dirname, "public")));
 server.use(express.json());
 
@@ -23,7 +25,8 @@ server.set("view engine", "mustache");
 server.engine("mustache", mustacheExpress());
 
 
-//Récupère la liste de film
+
+//RÉCUPÈRE LA LISTE DE FILMS
 server.get("/api/films", async (req, res)=>{
     try{
 
@@ -62,7 +65,8 @@ server.get("/api/films", async (req, res)=>{
 });
 
 
-//Prend un film avec son id
+
+//PREND UN FILM AVEC SON ID
 server.get("/api/films/:id", async (req, res)=>{
 
     const id = req.params.id;
@@ -79,7 +83,10 @@ server.get("/api/films/:id", async (req, res)=>{
     }
 });
 
-server.post("/api/films",  [
+
+
+//AJOUT D'UN FILM
+server.post("/api/films", auth, [
     check("titre").escape().trim().notEmpty(),
     check("genres").escape().trim().notEmpty(),
     check("description").escape().trim().notEmpty(),
@@ -116,8 +123,9 @@ server.post("/api/films",  [
 });
 
 
-//Modification
-server.put("/api/films/:id", [
+
+//MODIFICATION
+server.put("/api/films/:id", auth, [
     check("titre").escape().trim().notEmpty(),
     check("genres").escape().trim().notEmpty(),
     check("description").escape().trim().notEmpty(),
@@ -150,8 +158,9 @@ server.put("/api/films/:id", [
 });
 
 
-//Supprimer
-server.delete("/api/films/:id", async (req, res)=>{
+
+//SUPPRIMER
+server.delete("/api/films/:id", auth, async (req, res)=>{
     //params est tout les : dans ton url. Par exemple, :id, :user etc
     const id = req.params.id;
     const resultat = await db.collection("film").doc(id).delete();
@@ -159,7 +168,9 @@ server.delete("/api/films/:id", async (req, res)=>{
     res.json("Le document a été supprimé");
 });
 
-//Récupe info du body
+
+
+//INSCRYPTION
 server.post("/api/utilisateurs/inscription", [
     check("courriel").escape().trim().notEmpty().isEmail().normalizeEmail(),
     check("mdp").escape().trim().notEmpty().isLength({min:8, max:20}).isStrongPassword({
@@ -209,6 +220,9 @@ server.post("/api/utilisateurs/inscription", [
 
 });
 
+
+
+//CONNEXION
 server.post("/api/utilisateurs/connexion", async (req, res) => {
 
     //Récupe info du body
@@ -218,7 +232,7 @@ server.post("/api/utilisateurs/connexion", async (req, res) => {
     const docRef = await db.collection("utilisateurs").where("courriel", "==", courriel).get();
     const utilisateurs = [];
     docRef.forEach((utilisateur)=>{
-        utilisateurs.push(utilisateur.data());
+        utilisateurs.push({ id: utilisateur.id, ...utilisateur.data()});
     })
 
     //Si non erreur
@@ -227,6 +241,7 @@ server.post("/api/utilisateurs/connexion", async (req, res) => {
         return res.json({message: "Le courriel n'existe pas"});
     }
 
+    //TODO: À ajouter
     const utilisateurAValider = utilisateurs[0];
     const estValide = await bcrypt.compare(mdp, utilisateurAValider.mdp)
 
@@ -238,9 +253,27 @@ server.post("/api/utilisateurs/connexion", async (req, res) => {
 
     //Retourne les infos de l'utilisateur sans le mot de passe
     delete utilisateurs[0].mdp;
+
+    //Données à passer au front-end sur l'utilisateur
+    const donneesJeton = {
+        id: utilisateurs[0].id,
+        courriel: utilisateurs[0].courriel
+    }
+
+
+    //Options d'expirations 1d = 1 day
+    const option = {
+        expiresIn: "1d"
+    }
+
+    //Génération du jeton
+    const jeton = jwt.sign( donneesJeton, process.env.JWT_SECRET, option );
+
     res.statusCode = 200;
-    res.json(utilisateurs);
+    //res.json(utilisateurs);
+    res.json(jeton);
 });
+
 
 
 //DOIT ÊTRE LA DERNIÈRE
