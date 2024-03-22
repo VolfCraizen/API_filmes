@@ -24,14 +24,10 @@ const auth = async (req, res, next) => {
                 next();  
             } else {
                 //Si l'utilisateur n'éxiste pas, on retourne une erreur non autorisée.
-                // res.statusCode = 401;
-                // res.json({"message": "Non autorisé"});
                 throw new Error("Non autorisé")
             }
 
         } else {
-            // res.statusCode = 401;
-            // res.json({"message": "Non autorisé"});
             throw new Error("Non autorisé")
         }
 

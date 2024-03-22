@@ -236,7 +236,6 @@ server.post("/api/utilisateurs/connexion", async (req, res) => {
         return res.json({message: "Le courriel n'existe pas"});
     }
 
-    //TODO: À ajouter
     const utilisateurAValider = utilisateurs[0];
     const estValide = await bcrypt.compare(mdp, utilisateurAValider.mdp)
 
