@@ -146,21 +146,40 @@ server.put("/api/films/:id", auth, [
     donneesModifiees.realisation = req.body.realisation;
     donneesModifiees.titreVignette = req.body.titreVignette;
 
-    await db.collection("film").doc(id).update(donneesModifiees);
-    
-    res.status = 200;
-    res.json({message: "Les données ont été modifiées"})
-});
+    const donneesRef = await db.collection("film").doc(id).get();
+    const donnee = donneesRef.data();
 
+    //Vérifie si le film existe
+    if (donnee) {
+        await db.collection("film").doc(id).update(donneesModifiees);
+        res.statusCode = 200;
+        res.json({message: "Les données ont été modifiées"})
+    } else {
+        res.statusCode = 404;
+        return res.json({message: "Film non trouvé"});
+    }
+    
+});
 
 
 //SUPPRIMER
 server.delete("/api/films/:id", auth, async (req, res)=>{
     //params est tout les : dans ton url. Par exemple, :id, :user etc
-    const id = req.params.id;
-    const resultat = await db.collection("film").doc(id).delete();
 
-    res.json("Le document a été supprimé");
+    const id = req.params.id;
+    const donneesRef = await db.collection("film").doc(id).get();
+    const donnee = donneesRef.data();
+
+    //Vérifie si le film existe
+    if (donnee) {
+        //params est tout les : dans ton url. Par exemple, :id, :user etc
+        const resultat = await db.collection("film").doc(id).delete();
+        res.statusCode = 200;
+        res.json("Le document a été supprimé");
+    } else {
+        res.statusCode = 404;
+        return res.json({message: "Film non trouvé"});
+    }
 });
 
 
